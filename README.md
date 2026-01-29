@@ -1,36 +1,142 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🔐 Full Stack Authentication & Admin Dashboard
 
-## Getting Started
+A secure full‑stack web application built with **Next.js** that includes user authentication, admin authorization, feedback management, and session handling. This project focuses on **real‑world app security**, role‑based access control, and clean architecture.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Features
+
+### 👤 User Side
+
+* User signup & login
+* Secure authentication using cookies / tokens
+* Session‑based access control
+* Feedback submission
+* Protected routes
+
+### 🛡️ Admin Side
+
+* Admin login
+* Admin dashboard
+* View all user feedback
+* Role‑based UI rendering (admin vs user)
+* Protected admin routes
+
+### 🔐 Security Highlights
+
+* HTTP‑only cookies for auth tokens
+* Proper logout handling
+* Token refresh handling
+* Prevention of infinite refresh loops
+* Route protection via middleware / proxy
+* Role validation on both **client & server**
+
+---
+
+## 🧱 Tech Stack
+
+* **Frontend:** Next.js (App Router)
+* **Backend:** Next.js API Routes
+* **Authentication:** Cookie‑based / JWT
+* **Database:** MongoDB
+* **State Management:** React Hooks
+* **Styling:** CSS / Tailwind (if applicable)
+* **Version Control:** Git & GitHub
+
+---
+
+## 📂 Project Structure
+
+```
+/app
+ ├── api
+ │    └── auth
+ │         ├── login
+ │         ├── logout
+ │         ├── refresh
+ │         └── verify
+ ├── admin
+ │    └── dashboard
+ ├── feedback
+ ├── login
+ ├── signup
+ └── middleware / proxy
+
+/models
+/utils
+/components
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ⚙️ Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a `.env.local` file and add:
 
-## Learn More
+```env
+MONGODB_URI=your_mongodb_connection
+JWT_SECRET=your_secret_key
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ▶️ Getting Started
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+# install dependencies
+npm install
 
-## Deploy on Vercel
+# run development server
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Open `http://localhost:3000` in your browser.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🔄 Git Workflow Tip
+
+If you want to revert to the previous pushed version:
+
+```bash
+git reset --hard HEAD
+```
+
+Or to go back to a specific commit:
+
+```bash
+git log
+git reset --hard <commit-id>
+```
+
+---
+
+## 🧪 Common Issues Solved
+
+* ❌ Admin logged in but UI shows login/signup
+* ❌ Infinite `/api/auth/refresh` loop
+* ❌ Logout not clearing session properly
+* ❌ Role mismatch between client & server
+
+✔️ Fixed using centralized auth validation and role‑based rendering.
+
+---
+
+## 📌 Future Improvements
+
+* Access & Refresh token rotation
+* Audit logs for admin actions
+* Pagination for feedback list
+* Better error handling & loading states
+
+---
+
+## 👨‍💻 Author
+
+**Abhinand SD**
+MERN Stack Developer & Trainer
+
+---
+
+⭐ If you find this project useful, give it a star on GitHub!
