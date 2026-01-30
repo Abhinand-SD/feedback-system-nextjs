@@ -185,8 +185,8 @@ export default function AdminDashboard() {
                         ))}
                     </div>
                 ) : (
-                    <div className="bg-[#1D1D42] rounded-2xl shadow-xl overflow-hidden border border-[#2D2D50]">
-                        <table className="w-full text-left border-collapse">
+                    <div className="bg-[#1D1D42] rounded-2xl shadow-xl border border-[#2D2D50] overflow-x-auto">
+                        <table className="w-full text-left border-collapse min-w-[800px]">
                             <thead className="bg-[#27274F]">
                                 <tr>
                                     <th className="p-5 text-[#8D8DAD] font-semibold text-sm uppercase tracking-wider">Name</th>

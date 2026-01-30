@@ -92,7 +92,7 @@ export default function Dashboard() {
                 </div>
             </header>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Submission Form */}
                 <div className="md:col-span-1">
                     <div className="bg-card p-6 rounded-xl shadow-sm border border-border sticky top-24">
