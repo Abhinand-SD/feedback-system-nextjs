@@ -26,51 +26,53 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
     const isPending = feedback.status === 'pending';
 
     return (
-        <div className="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+        <div className="bg-card p-5 rounded-xl border border-border shadow-sm hover:shadow-md transition">
             <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold uppercase ${feedback.category === 'bug' ? 'bg-red-100 text-red-600' :
-                        feedback.category === 'feature' ? 'bg-purple-100 text-purple-600' :
-                            'bg-blue-100 text-blue-600'
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${feedback.category === 'bug' ? 'bg-red-50 text-red-600 border border-red-100' :
+                        feedback.category === 'feature' ? 'bg-purple-50 text-purple-600 border border-purple-100' :
+                            'bg-sky-50 text-sky-600 border border-sky-100'
                         }`}>
-                        {feedback.category}
+                        {feedback.category.replace('_', ' ')}
                     </span>
                     <span className="flex items-center text-yellow-500 text-sm font-bold">
                         {'★'.repeat(feedback.rating)}
-                        <span className="text-gray-300">{'★'.repeat(5 - feedback.rating)}</span>
+                        <span className="text-slate-200 dark:text-slate-600">{'★'.repeat(5 - feedback.rating)}</span>
                     </span>
                 </div>
 
                 {isPending ? (
-                    <div className="flex items-center gap-1 text-yellow-600 text-xs bg-yellow-50 px-2 py-1 rounded-full border border-yellow-200">
-                        <Clock size={12} /> Pending
+                    <div className="flex items-center gap-1.5 text-amber-600 text-xs bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100 font-medium">
+                        <Clock size={14} /> Pending Review
                     </div>
                 ) : (
-                    <div className="flex items-center gap-1 text-green-600 text-xs bg-green-50 px-2 py-1 rounded-full border border-green-200">
-                        <BadgeCheck size={12} /> Reviewed
+                    <div className="flex items-center gap-1.5 text-emerald-600 text-xs bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 font-medium">
+                        <BadgeCheck size={14} /> Reviewed
                     </div>
                 )}
             </div>
 
-            <p className="text-gray-800 mb-4 whitespace-pre-wrap">{feedback.message}</p>
+            <p className="text-slate-700 dark:text-slate-300 mb-4 whitespace-pre-wrap text-sm leading-relaxed">{feedback.message}</p>
 
             {/* Admin specific: Show User info */}
             {showUser && feedback.userId && (
-                <p className="text-sm text-gray-500 mb-2">
-                    By: <span className="font-medium">{feedback.userId.name}</span> ({feedback.userId.email})
+                <p className="text-xs text-slate-400 mb-3 px-1 inline-block">
+                    Patient/User: <span className="font-medium text-slate-200">{feedback.userId.name}</span> ({feedback.userId.email})
                 </p>
             )}
 
             {/* Admin Reply Display */}
             {feedback.reply && (
-                <div className="bg-gray-50 p-3 rounded-lg border-l-4 border-blue-500 mb-4">
-                    <p className="text-xs text-gray-500 font-bold uppercase mb-1">Admin Reply</p>
-                    <p className="text-sm text-gray-700">{feedback.reply}</p>
+                <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border-l-4 border-primary mb-4">
+                    <p className="text-xs text-primary font-bold uppercase mb-1 flex items-center gap-1">
+                        <BadgeCheck size={12} /> Response from Establishment
+                    </p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300">{feedback.reply}</p>
                 </div>
             )}
 
-            <div className="flex justify-between items-center mt-auto pt-3 border-t">
-                <span className="text-xs text-gray-400">
+            <div className="flex justify-between items-center mt-auto pt-3 border-t border-border">
+                <span className="text-xs text-slate-400">
                     {formatDistanceToNow(new Date(feedback.createdAt), { addSuffix: true })}
                 </span>
 
@@ -78,7 +80,7 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
                     {onReply && (
                         <button
                             onClick={() => onReply(feedback._id)}
-                            className="text-blue-500 hover:text-blue-700 text-sm font-semibold hover:underline"
+                            className="text-primary hover:text-sky-400 text-sm font-semibold hover:underline"
                         >
                             Reply
                         </button>
@@ -87,7 +89,7 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
                     {onEdit && isPending && (
                         <button
                             onClick={() => onEdit(feedback)}
-                            className="text-gray-500 hover:text-blue-600 transition p-1"
+                            className="text-slate-500 hover:text-primary transition p-1 text-sm font-medium"
                             title="Edit Feedback"
                         >
                             Edit
@@ -97,7 +99,7 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
                     {onDelete && (
                         <button
                             onClick={() => onDelete(feedback._id)}
-                            className="text-red-400 hover:text-red-600 transition p-1 rounded hover:bg-red-50"
+                            className="text-red-400 hover:text-red-500 transition p-1 rounded hover:bg-red-500/10"
                             title="Delete Feedback"
                         >
                             <Trash2 size={16} />
@@ -108,3 +110,4 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
         </div>
     );
 }
+

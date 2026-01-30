@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { ClipboardList } from 'lucide-react';
 
 export default function Signup() {
     const [data, setData] = useState({ name: '', email: '', password: '' });
@@ -26,52 +27,65 @@ export default function Signup() {
     };
 
     return (
-        <div className="flex justify-center items-center min-h-[80vh]">
-            <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border">
-                <h2 className="text-2xl font-bold mb-6 text-center">Create an Account</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex justify-center items-center min-h-screen bg-background">
+            <div className="bg-card p-8 rounded-xl shadow-md w-full max-w-md border border-border">
+                <div className="flex flex-col items-center mb-6">
+                    <div className="p-3 bg-primary/10 rounded-full mb-3">
+                        <ClipboardList className="h-8 w-8 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-foreground">Patient Registration</h2>
+                    <p className="text-slate-500 text-sm mt-1">Create an account to submit feedback</p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Name</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
                         <input
                             type="text"
                             required
-                            className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full p-2.5 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                             value={data.name}
                             onChange={(e) => setData({ ...data, name: e.target.value })}
+                            placeholder="John Doe"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
                         <input
                             type="email"
                             required
-                            className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full p-2.5 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                             value={data.email}
                             onChange={(e) => setData({ ...data, email: e.target.value })}
+                            placeholder="name@example.com"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Password</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Password</label>
                         <input
                             type="password"
                             required
-                            className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full p-2.5 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                             value={data.password}
                             onChange={(e) => setData({ ...data, password: e.target.value })}
+                            placeholder="••••••••"
                         />
                     </div>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                        className="w-full bg-primary text-white py-2.5 rounded-lg hover:bg-sky-700 transition disabled:opacity-50 font-medium shadow-sm"
                     >
-                        {loading ? 'Creating Account...' : 'Sign Up'}
+                        {loading ? 'Processing...' : 'Create Account'}
                     </button>
                 </form>
-                <p className="mt-4 text-center text-sm text-gray-600">
-                    Already have an account? <Link href="/login" className="text-blue-600 hover:underline">Login</Link>
-                </p>
+                <div className="mt-6 text-center text-sm">
+                    <p className="text-slate-600">
+                        Already have an account? <Link href="/login" className="text-primary hover:underline font-medium">Sign In</Link>
+                    </p>
+                </div>
             </div>
         </div>
     );
 }
+

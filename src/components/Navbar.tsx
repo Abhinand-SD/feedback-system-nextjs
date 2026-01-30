@@ -2,9 +2,16 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
     const { user, logout } = useAuth();
+    const pathname = usePathname();
+
+    // Hide navbar on auth pages to avoid double header/layout issues
+    if (['/login', '/signup', '/verify'].some(path => pathname?.startsWith(path))) {
+        return null;
+    }
 
     return (
         <nav className="bg-gray-800 text-white p-4 shadow-md">

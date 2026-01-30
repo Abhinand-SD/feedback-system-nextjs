@@ -8,7 +8,7 @@ const FeedbackSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        enum: ['feature', 'bug', 'general', 'other'],
+        enum: ['medical_care', 'facilities', 'staff', 'billing', 'general', 'other'],
         required: [true, 'Please provide a category'],
     },
     rating: {
