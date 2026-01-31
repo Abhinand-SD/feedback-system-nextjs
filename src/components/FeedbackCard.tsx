@@ -56,8 +56,8 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
 
             {/* Admin specific: Show User info */}
             {showUser && feedback.userId && (
-                <p className="text-xs text-slate-400 mb-3 px-1 inline-block">
-                    Patient/User: <span className="font-medium text-slate-200">{feedback.userId.name}</span> ({feedback.userId.email})
+                <p className="text-xs text-muted-foreground mb-3 px-1 inline-block">
+                    Patient/User: <span className="font-medium text-foreground">{feedback.userId.name}</span> ({feedback.userId.email})
                 </p>
             )}
 
