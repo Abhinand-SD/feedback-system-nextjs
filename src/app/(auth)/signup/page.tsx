@@ -62,7 +62,7 @@ export default function Signup() {
                         <input
                             type="text"
                             required
-                            className="w-full p-2.5 border border-input rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-background text-foreground placeholder:text-muted-foreground"
+                            className="w-full p-2.5 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
                             value={data.name}
                             onChange={(e) => setData({ ...data, name: e.target.value })}
                             placeholder="John Doe"
@@ -73,7 +73,7 @@ export default function Signup() {
                         <input
                             type="email"
                             required
-                            className="w-full p-2.5 border border-input rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-background text-foreground placeholder:text-muted-foreground"
+                            className="w-full p-2.5 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
                             value={data.email}
                             onChange={(e) => setData({ ...data, email: e.target.value })}
                             placeholder="name@example.com"
@@ -84,7 +84,7 @@ export default function Signup() {
                         <input
                             type="password"
                             required
-                            className="w-full p-2.5 border border-input rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-background text-foreground placeholder:text-muted-foreground"
+                            className="w-full p-2.5 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
                             value={data.password}
                             onChange={(e) => setData({ ...data, password: e.target.value })}
                             placeholder="••••••••"
