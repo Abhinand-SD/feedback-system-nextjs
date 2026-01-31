@@ -17,15 +17,15 @@ export default function Navbar() {
     }
 
     return (
-        <nav className="bg-gray-800 text-white p-4 shadow-md relative z-50">
+        <nav className="bg-card border-b border-border text-card-foreground p-4 shadow-sm relative z-50">
             <div className="container mx-auto flex justify-between items-center">
-                <Link href="/" className="text-xl font-bold hover:text-gray-200">
+                <Link href="/" className="text-xl font-bold hover:text-primary transition-colors">
                     FeedbackSystem
                 </Link>
 
                 {/* Mobile Menu Button */}
                 <button
-                    className="md:hidden text-gray-200 hover:text-white focus:outline-none"
+                    className="md:hidden text-muted-foreground hover:text-foreground focus:outline-none"
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                 >
                     {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -37,15 +37,15 @@ export default function Navbar() {
                         user ? (
                             <>
                                 {user.role === 'admin' ? (
-                                    <Link href="/admin" className="hover:text-blue-300">Admin Dashboard</Link>
+                                    <Link href="/admin" className="text-muted-foreground hover:text-primary transition-colors font-medium">Admin Dashboard</Link>
                                 ) : (
-                                    <Link href="/dashboard" className="hover:text-blue-300">Dashboard</Link>
+                                    <Link href="/dashboard" className="text-muted-foreground hover:text-primary transition-colors font-medium">Dashboard</Link>
                                 )}
                                 <div className="flex items-center gap-4">
-                                    <span className="text-sm bg-gray-700 px-2 py-1 rounded">{user.name}</span>
+                                    <span className="text-sm bg-muted text-muted-foreground px-3 py-1 rounded-full font-medium">{user.name}</span>
                                     <button
                                         onClick={logout}
-                                        className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm transition"
+                                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-full text-sm transition shadow-sm hover:shadow"
                                     >
                                         Logout
                                     </button>
@@ -53,10 +53,10 @@ export default function Navbar() {
                             </>
                         ) : (
                             <>
-                                <Link href="/login" className="hover:text-gray-300">Login</Link>
+                                <Link href="/login" className="text-muted-foreground hover:text-primary transition-colors font-medium">Login</Link>
                                 <Link
                                     href="/signup"
-                                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition"
+                                    className="bg-primary hover:bg-sky-500 text-primary-foreground px-5 py-2 rounded-full transition shadow-sm hover:shadow font-medium"
                                 >
                                     Sign Up
                                 </Link>
@@ -68,19 +68,19 @@ export default function Navbar() {
 
             {/* Mobile Menu Dropdown */}
             {isMenuOpen && (
-                <div className="md:hidden absolute top-full left-0 right-0 bg-gray-800 border-t border-gray-700 p-4 flex flex-col gap-4 shadow-lg animate-in slide-in-from-top-5 duration-200">
+                <div className="md:hidden absolute top-full left-0 right-0 bg-card border-b border-border p-4 flex flex-col gap-4 shadow-lg animate-in slide-in-from-top-2 duration-200">
                     {loading ? null : (
                         user ? (
                             <>
-                                <div className="flex items-center justify-between bg-gray-700 p-2 rounded">
-                                    <span className="font-medium">{user.name}</span>
-                                    <span className="text-xs text-gray-400 capitalize">{user.role}</span>
+                                <div className="flex items-center justify-between bg-muted p-3 rounded-lg">
+                                    <span className="font-medium text-foreground">{user.name}</span>
+                                    <span className="text-xs text-muted-foreground capitalize bg-background px-2 py-0.5 rounded border border-border">{user.role}</span>
                                 </div>
 
                                 {user.role === 'admin' ? (
                                     <Link
                                         href="/admin"
-                                        className="hover:text-blue-300 py-2 block"
+                                        className="text-muted-foreground hover:text-primary py-2 block font-medium"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
                                         Admin Dashboard
@@ -88,7 +88,7 @@ export default function Navbar() {
                                 ) : (
                                     <Link
                                         href="/dashboard"
-                                        className="hover:text-blue-300 py-2 block"
+                                        className="text-muted-foreground hover:text-primary py-2 block font-medium"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
                                         Dashboard
@@ -100,7 +100,7 @@ export default function Navbar() {
                                         logout();
                                         setIsMenuOpen(false);
                                     }}
-                                    className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-center transition w-full"
+                                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-center transition w-full font-medium"
                                 >
                                     Logout
                                 </button>
@@ -109,14 +109,14 @@ export default function Navbar() {
                             <>
                                 <Link
                                     href="/login"
-                                    className="hover:text-gray-300 py-2 block text-center border border-gray-600 rounded"
+                                    className="hover:text-primary hover:bg-muted py-2.5 block text-center border border-border rounded-lg text-muted-foreground transition"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     Login
                                 </Link>
                                 <Link
                                     href="/signup"
-                                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition text-center block"
+                                    className="bg-primary hover:bg-sky-500 text-primary-foreground px-4 py-2.5 rounded-lg transition text-center block font-medium"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     Sign Up

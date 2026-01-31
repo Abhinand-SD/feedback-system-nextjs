@@ -7,10 +7,14 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { ClipboardList } from 'lucide-react';
 
+import { GoogleLogin } from '@react-oauth/google';
+import { useAuth } from '@/context/AuthContext';
+
 export default function Signup() {
     const [data, setData] = useState({ name: '', email: '', password: '' });
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { checkAuth } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,6 +30,21 @@ export default function Signup() {
         }
     };
 
+    const handleGoogleSuccess = async (credentialResponse: any) => {
+        try {
+            const res = await axios.post('/api/auth/google', {
+                credential: credentialResponse.credential
+            });
+            toast.success('Account created with Google');
+            await checkAuth(); // Update context
+            router.push('/dashboard'); // Direct to dashboard as google is verified
+        } catch (error: any) {
+            console.error('Google Signup Error:', error);
+            toast.error(error.response?.data?.message || 'Google Signup Failed');
+        }
+    };
+
+
     return (
         <div className="flex justify-center items-center min-h-screen bg-background">
             <div className="bg-card p-8 rounded-xl shadow-md w-full max-w-md border border-border">
@@ -34,38 +53,38 @@ export default function Signup() {
                         <ClipboardList className="h-8 w-8 text-primary" />
                     </div>
                     <h2 className="text-2xl font-bold text-foreground">Patient Registration</h2>
-                    <p className="text-slate-500 text-sm mt-1">Create an account to submit feedback</p>
+                    <p className="text-muted-foreground text-sm mt-1">Create an account to submit feedback</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">Full Name</label>
                         <input
                             type="text"
                             required
-                            className="w-full p-2.5 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                            className="w-full p-2.5 border border-input rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-background text-foreground placeholder:text-muted-foreground"
                             value={data.name}
                             onChange={(e) => setData({ ...data, name: e.target.value })}
                             placeholder="John Doe"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">Email Address</label>
                         <input
                             type="email"
                             required
-                            className="w-full p-2.5 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                            className="w-full p-2.5 border border-input rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-background text-foreground placeholder:text-muted-foreground"
                             value={data.email}
                             onChange={(e) => setData({ ...data, email: e.target.value })}
                             placeholder="name@example.com"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Password</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">Password</label>
                         <input
                             type="password"
                             required
-                            className="w-full p-2.5 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                            className="w-full p-2.5 border border-input rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-background text-foreground placeholder:text-muted-foreground"
                             value={data.password}
                             onChange={(e) => setData({ ...data, password: e.target.value })}
                             placeholder="••••••••"
@@ -74,13 +93,33 @@ export default function Signup() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-primary text-white py-2.5 rounded-lg hover:bg-sky-700 transition disabled:opacity-50 font-medium shadow-sm"
+                        className="w-full bg-primary text-primary-foreground py-2.5 rounded-lg hover:bg-primary/90 transition disabled:opacity-50 font-medium shadow-sm"
                     >
                         {loading ? 'Processing...' : 'Create Account'}
                     </button>
+
+                    <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-border"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-2 bg-card text-muted-foreground">or continue with</span>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={() => toast.error('Google Signup Failed')}
+                            useOneTap
+                            theme="filled_blue"
+                            shape="pill"
+                            text="signup_with"
+                        />
+                    </div>
                 </form>
                 <div className="mt-6 text-center text-sm">
-                    <p className="text-slate-600">
+                    <p className="text-muted-foreground">
                         Already have an account? <Link href="/login" className="text-primary hover:underline font-medium">Sign In</Link>
                     </p>
                 </div>

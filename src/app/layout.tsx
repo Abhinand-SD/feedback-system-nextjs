@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: 'Share your thoughts and feedback',
 };
 
+import GoogleWrapper from '@/components/GoogleWrapper';
+
 export default function RootLayout({
   children,
 }: {
@@ -20,13 +22,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AuthProvider>
-          <Navbar />
-          <main className="min-h-screen bg-gray-50 text-gray-900">
-            {children}
-          </main>
-          <Toaster />
-        </AuthProvider>
+        <GoogleWrapper>
+          <AuthProvider>
+            <Navbar />
+            <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
+              {children}
+            </main>
+            <Toaster />
+          </AuthProvider>
+        </GoogleWrapper>
       </body>
     </html>
   );
