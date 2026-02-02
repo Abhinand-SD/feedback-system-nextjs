@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, Mail, Phone, User as UserIcon, Lock } from 'lucide-react';
 
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Signup() {
-    const [data, setData] = useState({ name: '', email: '', password: '' });
+    const [signupMethod, setSignupMethod] = useState<'email' | 'mobile'>('email');
+    const [data, setData] = useState({ name: '', email: '', mobile: '', password: '' });
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const { checkAuth } = useAuth();
@@ -20,9 +21,20 @@ export default function Signup() {
         e.preventDefault();
         setLoading(true);
         try {
-            await axios.post('/api/auth/signup', data);
-            toast.success('Signup successful! Check your email for OTP.');
-            router.push(`/verify?email=${encodeURIComponent(data.email)}`);
+            const payload = {
+                name: data.name,
+                password: data.password,
+                ...(signupMethod === 'email' ? { email: data.email } : { mobile: data.mobile }),
+            };
+
+            await axios.post('/api/auth/signup', payload);
+            toast.success('Signup successful! Check your device for OTP.');
+
+            const queryParam = signupMethod === 'email'
+                ? `email=${encodeURIComponent(data.email)}`
+                : `mobile=${encodeURIComponent(data.mobile)}`;
+
+            router.push(`/verify?${queryParam}`);
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Signup failed');
         } finally {
@@ -56,40 +68,103 @@ export default function Signup() {
                     <p className="text-muted-foreground text-sm mt-1">Create an account to submit feedback</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-lg mb-6">
+                    <button
+                        type="button"
+                        onClick={() => setSignupMethod('email')}
+                        className={`flex-1 flex items-center justify-center py-2 text-sm font-medium rounded-md transition-all ${signupMethod === 'email'
+                            ? 'bg-white dark:bg-slate-800 text-primary shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                    >
+                        <Mail className="w-4 h-4 mr-2" />
+                        Email
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setSignupMethod('mobile')}
+                        className={`flex-1 flex items-center justify-center py-2 text-sm font-medium rounded-md transition-all ${signupMethod === 'mobile'
+                            ? 'bg-white dark:bg-slate-800 text-primary shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                    >
+                        <Phone className="w-4 h-4 mr-2" />
+                        Mobile
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-foreground mb-1">Full Name</label>
-                        <input
-                            type="text"
-                            required
-                            className="w-full p-2.5 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
-                            value={data.name}
-                            onChange={(e) => setData({ ...data, name: e.target.value })}
-                            placeholder="John Doe"
-                        />
+                        <div className="relative">
+                            <span className="absolute left-3 top-3 text-muted-foreground">
+                                <UserIcon className="w-4 h-4" />
+                            </span>
+                            <input
+                                type="text"
+                                required
+                                className="w-full pl-9 p-2.5 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
+                                value={data.name}
+                                onChange={(e) => setData({ ...data, name: e.target.value })}
+                                placeholder="John Doe"
+                            />
+                        </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Email Address</label>
-                        <input
-                            type="email"
-                            required
-                            className="w-full p-2.5 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
-                            value={data.email}
-                            onChange={(e) => setData({ ...data, email: e.target.value })}
-                            placeholder="name@example.com"
-                        />
-                    </div>
+
+                    {signupMethod === 'email' ? (
+                        <div>
+                            <label className="block text-sm font-medium text-foreground mb-1">Email Address</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-3 text-muted-foreground">
+                                    <Mail className="w-4 h-4" />
+                                </span>
+                                <input
+                                    type="email"
+                                    required
+                                    className="w-full pl-9 p-2.5 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
+                                    value={data.email}
+                                    onChange={(e) => setData({ ...data, email: e.target.value })}
+                                    placeholder="name@example.com"
+                                />
+                            </div>
+                        </div>
+                    ) : (
+                        <div>
+                            <label className="block text-sm font-medium text-foreground mb-1">Mobile Number</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-3 text-muted-foreground">
+                                    <Phone className="w-4 h-4" />
+                                </span>
+                                <input
+                                    type="tel"
+                                    required
+                                    pattern="^\+?[0-9]{10,15}$"
+                                    className="w-full pl-9 p-2.5 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
+                                    value={data.mobile}
+                                    onChange={(e) => setData({ ...data, mobile: e.target.value })}
+                                    placeholder="+919876543210"
+                                />
+                            </div>
+                        </div>
+                    )}
+
                     <div>
                         <label className="block text-sm font-medium text-foreground mb-1">Password</label>
-                        <input
-                            type="password"
-                            required
-                            className="w-full p-2.5 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
-                            value={data.password}
-                            onChange={(e) => setData({ ...data, password: e.target.value })}
-                            placeholder="••••••••"
-                        />
+                        <div className="relative">
+                            <span className="absolute left-3 top-3 text-muted-foreground">
+                                <Lock className="w-4 h-4" />
+                            </span>
+                            <input
+                                type="password"
+                                required
+                                className="w-full pl-9 p-2.5 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
+                                value={data.password}
+                                onChange={(e) => setData({ ...data, password: e.target.value })}
+                                placeholder="••••••••"
+                            />
+                        </div>
                     </div>
+
                     <button
                         type="submit"
                         disabled={loading}
@@ -111,7 +186,6 @@ export default function Signup() {
                         <GoogleLogin
                             onSuccess={handleGoogleSuccess}
                             onError={() => toast.error('Google Signup Failed')}
-                            useOneTap
                             theme="filled_blue"
                             shape="pill"
                             text="signup_with"

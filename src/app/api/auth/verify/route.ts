@@ -4,15 +4,16 @@ import User from '@/models/User';
 
 export async function POST(req: Request) {
     try {
-        const { email, otp } = await req.json();
+        const { email, mobile, otp } = await req.json();
 
-        if (!email || !otp) {
-            return NextResponse.json({ message: 'Email and OTP are required' }, { status: 400 });
+        if ((!email && !mobile) || !otp) {
+            return NextResponse.json({ message: 'Email/Mobile and OTP are required' }, { status: 400 });
         }
 
         await dbConnect();
 
-        const user = await User.findOne({ email });
+        const query = email ? { email } : { mobile };
+        const user = await User.findOne(query);
 
         if (!user) {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });

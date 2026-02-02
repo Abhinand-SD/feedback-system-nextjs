@@ -11,7 +11,7 @@ import { Activity } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 
 export default function Login() {
-    const [data, setData] = useState({ email: '', password: '' });
+    const [data, setData] = useState({ identifier: '', password: '' });
     const [loading, setLoading] = useState(false);
     const { checkAuth } = useAuth();
     const router = useRouter();
@@ -20,7 +20,13 @@ export default function Login() {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await axios.post('/api/auth/login', data);
+            const isEmail = data.identifier.includes('@');
+            const payload = {
+                password: data.password,
+                ...(isEmail ? { email: data.identifier } : { mobile: data.identifier })
+            };
+
+            const res = await axios.post('/api/auth/login', payload);
             toast.success('Logged in successfully');
             await checkAuth(); // Update context
             if (res.data.user.role === 'admin') {
@@ -31,8 +37,12 @@ export default function Login() {
         } catch (error: any) {
             // If not verified, redirect to verify
             if (error.response?.data?.isVerified === false) {
-                toast.error('Email not verified');
-                router.push(`/verify?email=${encodeURIComponent(data.email)}`);
+                toast.error('Account not verified');
+                const isEmail = data.identifier.includes('@');
+                const queryParam = isEmail
+                    ? `email=${encodeURIComponent(data.identifier)}`
+                    : `mobile=${encodeURIComponent(data.identifier)}`;
+                router.push(`/verify?${queryParam}`);
             } else {
                 toast.error(error.response?.data?.message || 'Login failed');
             }
@@ -72,14 +82,14 @@ export default function Login() {
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Email Address</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">Email or Mobile Number</label>
                         <input
-                            type="email"
+                            type="text"
                             required
                             className="w-full p-2.5 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
-                            value={data.email}
-                            onChange={(e) => setData({ ...data, email: e.target.value })}
-                            placeholder="name@example.com"
+                            value={data.identifier}
+                            onChange={(e) => setData({ ...data, identifier: e.target.value })}
+                            placeholder="name@example.com or +919876543210"
                         />
                     </div>
                     <div>
@@ -114,7 +124,6 @@ export default function Login() {
                         <GoogleLogin
                             onSuccess={handleGoogleSuccess}
                             onError={() => toast.error('Google Login Failed')}
-                            useOneTap
                             theme="filled_blue"
                             shape="pill"
                         />

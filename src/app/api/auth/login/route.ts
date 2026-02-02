@@ -7,15 +7,16 @@ import { cookies } from 'next/headers';
 
 export async function POST(req: Request) {
     try {
-        const { email, password } = await req.json();
+        const { email, mobile, password } = await req.json();
 
-        if (!email || !password) {
-            return NextResponse.json({ message: 'Email and password are required' }, { status: 400 });
+        if ((!email && !mobile) || !password) {
+            return NextResponse.json({ message: 'Email/Mobile and password are required' }, { status: 400 });
         }
 
         await dbConnect();
 
-        const user = await User.findOne({ email });
+        const query = email ? { email } : { mobile };
+        const user = await User.findOne(query);
 
         if (!user) {
             return NextResponse.json({ message: 'Invalid credentials' }, { status: 400 });
@@ -32,7 +33,7 @@ export async function POST(req: Request) {
         }
 
         if (!user.isVerified) {
-            return NextResponse.json({ message: 'Please verify your email first', isVerified: false }, { status: 403 });
+            return NextResponse.json({ message: 'Please verify your account first', isVerified: false }, { status: 403 });
         }
 
         const token = jwt.sign(
@@ -56,6 +57,7 @@ export async function POST(req: Request) {
                 id: user._id,
                 name: user.name,
                 email: user.email,
+                mobile: user.mobile,
                 role: user.role,
             }
         }, { status: 200 });

@@ -165,7 +165,7 @@ export default function AdminDashboard() {
                             <thead className="bg-muted/50">
                                 <tr>
                                     <th className="p-5 text-muted-foreground font-semibold text-sm uppercase tracking-wider">Name</th>
-                                    <th className="p-5 text-muted-foreground font-semibold text-sm uppercase tracking-wider">Email</th>
+                                    <th className="p-5 text-muted-foreground font-semibold text-sm uppercase tracking-wider">Email / Phone</th>
                                     <th className="p-5 text-muted-foreground font-semibold text-sm uppercase tracking-wider">Status</th>
                                     <th className="p-5 text-muted-foreground font-semibold text-sm uppercase tracking-wider">Role</th>
                                     <th className="p-5 text-muted-foreground font-semibold text-sm uppercase tracking-wider">Actions</th>
@@ -180,7 +180,9 @@ export default function AdminDashboard() {
                                             </div>
                                             {u.name}
                                         </td>
-                                        <td className="p-5 text-muted-foreground">{u.email}</td>
+                                        <td className="p-5 text-muted-foreground">
+                                            {u.email || u.mobile}
+                                        </td>
                                         <td className="p-5">
                                             {u.blocked ? (
                                                 <span className="bg-red-500/10 text-red-500 px-3 py-1 rounded-full text-xs font-bold border border-red-500/20">Blocked</span>
