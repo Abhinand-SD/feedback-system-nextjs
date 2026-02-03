@@ -26,8 +26,14 @@ export const sendSMS = async (mobile: string, otp: string) => {
             });
             console.log(`[Twilio SMS] Sent OTP to ${mobile} successfully`);
             return;
-        } catch (error) {
-            console.error('[Twilio SMS] Error sending SMS:', error);
+        } catch (error: any) {
+            if (error.code === 21608) {
+                console.warn(`[Twilio SMS Warning] Trial Account Limitation: Destination ${mobile} is not verified.`);
+                console.warn('-> You must verify this number in Twilio Console or upgrade your account.');
+                console.warn('-> Falling back to MOCK SMS for development.');
+            } else {
+                console.error('[Twilio SMS] Error sending SMS:', error.message);
+            }
             // Fallthrough to mock log so we can see the OTP in dev
         }
     } else {

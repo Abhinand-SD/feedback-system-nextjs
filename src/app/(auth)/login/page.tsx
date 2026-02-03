@@ -23,7 +23,7 @@ export default function Login() {
             const isEmail = data.identifier.includes('@');
             const payload = {
                 password: data.password,
-                ...(isEmail ? { email: data.identifier } : { mobile: data.identifier })
+                ...(isEmail ? { email: data.identifier } : { mobile: data.identifier.match(/^[0-9]{10}$/) ? `+91${data.identifier}` : data.identifier })
             };
 
             const res = await axios.post('/api/auth/login', payload);
@@ -41,7 +41,7 @@ export default function Login() {
                 const isEmail = data.identifier.includes('@');
                 const queryParam = isEmail
                     ? `email=${encodeURIComponent(data.identifier)}`
-                    : `mobile=${encodeURIComponent(data.identifier)}`;
+                    : `mobile=${encodeURIComponent(data.identifier.match(/^[0-9]{10}$/) ? `+91${data.identifier}` : data.identifier)}`;
                 router.push(`/verify?${queryParam}`);
             } else {
                 toast.error(error.response?.data?.message || 'Login failed');
@@ -89,7 +89,7 @@ export default function Login() {
                             className="w-full p-2.5 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
                             value={data.identifier}
                             onChange={(e) => setData({ ...data, identifier: e.target.value })}
-                            placeholder="name@example.com or +919876543210"
+                            placeholder="name@example.com or 9876543210"
                         />
                     </div>
                     <div>

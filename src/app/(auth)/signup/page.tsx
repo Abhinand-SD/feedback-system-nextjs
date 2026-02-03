@@ -24,7 +24,7 @@ export default function Signup() {
             const payload = {
                 name: data.name,
                 password: data.password,
-                ...(signupMethod === 'email' ? { email: data.email } : { mobile: data.mobile }),
+                ...(signupMethod === 'email' ? { email: data.email } : { mobile: `+91${data.mobile}` }),
             };
 
             await axios.post('/api/auth/signup', payload);
@@ -32,7 +32,7 @@ export default function Signup() {
 
             const queryParam = signupMethod === 'email'
                 ? `email=${encodeURIComponent(data.email)}`
-                : `mobile=${encodeURIComponent(data.mobile)}`;
+                : `mobile=${encodeURIComponent('+91' + data.mobile)}`;
 
             router.push(`/verify?${queryParam}`);
         } catch (error: any) {
@@ -131,18 +131,19 @@ export default function Signup() {
                     ) : (
                         <div>
                             <label className="block text-sm font-medium text-foreground mb-1">Mobile Number</label>
-                            <div className="relative">
-                                <span className="absolute left-3 top-3 text-muted-foreground">
-                                    <Phone className="w-4 h-4" />
+                            <div className="flex">
+                                <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800 text-slate-500 text-sm">
+                                    +91
                                 </span>
                                 <input
                                     type="tel"
                                     required
-                                    pattern="^\+?[0-9]{10,15}$"
-                                    className="w-full pl-9 p-2.5 rounded-lg focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
+                                    pattern="[0-9]{10}"
+                                    maxLength={10}
+                                    className="w-full p-2.5 rounded-r-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary/50 outline-none transition bg-slate-100 dark:bg-slate-900 text-foreground placeholder:text-muted-foreground"
                                     value={data.mobile}
-                                    onChange={(e) => setData({ ...data, mobile: e.target.value })}
-                                    placeholder="+919876543210"
+                                    onChange={(e) => setData({ ...data, mobile: e.target.value.replace(/\D/g, '') })}
+                                    placeholder="9876543210"
                                 />
                             </div>
                         </div>
