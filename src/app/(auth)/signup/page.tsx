@@ -36,7 +36,14 @@ export default function Signup() {
 
             router.push(`/verify?${queryParam}`);
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Signup failed');
+            const serverError = error.response?.data;
+            if (serverError?.errors) {
+                // If we have specific field errors (from Zod), join them
+                const errorMessages = Object.values(serverError.errors).flat().join(', ');
+                toast.error(errorMessages);
+            } else {
+                toast.error(serverError?.message || 'Signup failed');
+            }
         } finally {
             setLoading(false);
         }

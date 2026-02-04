@@ -4,19 +4,35 @@ import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import { sendOTP } from '@/lib/sendEmail';
 import { sendSMS } from '@/lib/sendSMS';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { signupSchema } from '@/lib/validations';
 
 export async function POST(req: Request) {
     try {
-        const { name, email, mobile, password } = await req.json();
+        const ip = req.headers.get('x-forwarded-for') || 'unknown';
+        const rateLimit = checkRateLimit(ip, 10, 10 * 60 * 1000); // 10 attempts per 10 mins
 
-        if (!name || (!email && !mobile) || !password) {
-            return NextResponse.json({ message: 'Name, password, and either email or mobile are required' }, { status: 400 });
+        if (!rateLimit.success) {
+            return NextResponse.json({
+                message: 'Too many signup attempts. Please try again later.'
+            }, { status: 429 });
         }
+
+        const body = await req.json();
+        const validation = signupSchema.safeParse(body);
+
+        if (!validation.success) {
+            return NextResponse.json({
+                message: 'Invalid input',
+                errors: validation.error.flatten().fieldErrors
+            }, { status: 400 });
+        }
+
+        const { name, email, mobile, password } = validation.data;
 
         await dbConnect();
 
         // Sync indexes to ensure 'sparse' option is applied to email/mobile
-        // This fixes the "E11000 duplicate key error" for null/missing fields
         await User.syncIndexes();
 
         const query = email ? { email } : { mobile };
@@ -32,8 +48,8 @@ export async function POST(req: Request) {
 
         const newUser = new User({
             name,
-            email: email || undefined, // Ensure empty string becomes undefined
-            mobile: mobile || undefined, // Ensure empty string becomes undefined
+            email: email || undefined,
+            mobile: mobile || undefined,
             password: hashedPassword,
             otp,
             otpExpires,

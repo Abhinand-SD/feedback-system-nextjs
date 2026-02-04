@@ -3,14 +3,31 @@ import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import { sendOTP } from '@/lib/sendEmail';
 import { sendSMS } from '@/lib/sendSMS';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { resendSchema } from '@/lib/validations';
 
 export async function POST(req: Request) {
     try {
-        const { email, mobile } = await req.json();
+        const ip = req.headers.get('x-forwarded-for') || 'unknown';
+        const rateLimit = checkRateLimit(ip, 3, 60 * 60 * 1000); // 3 attempts per hour
 
-        if (!email && !mobile) {
-            return NextResponse.json({ message: 'Email or Mobile is required' }, { status: 400 });
+        if (!rateLimit.success) {
+            return NextResponse.json({
+                message: 'Too many resend attempts. Please try again later.'
+            }, { status: 429 });
         }
+
+        const body = await req.json();
+        const validation = resendSchema.safeParse(body);
+
+        if (!validation.success) {
+            return NextResponse.json({
+                message: 'Invalid input',
+                errors: validation.error.flatten().fieldErrors
+            }, { status: 400 });
+        }
+
+        const { email, mobile } = validation.data;
 
         await dbConnect();
 
@@ -21,20 +38,23 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });
         }
 
-        if (user.isVerified) {
-            return NextResponse.json({ message: 'User is already verified' }, { status: 200 }); // Not an error, just info
+        // Check availability
+        if (user.lockoutUntil && user.lockoutUntil > new Date()) {
+            return NextResponse.json({
+                message: 'Account locked. Cannot resend OTP.'
+            }, { status: 429 });
         }
 
-        // Check if previous OTP is still valid to prevent spam? 
-        // For now, let's just regenerate. Or maybe enforce a cooldown?
-        // Let's implement a simple 60s cooldown based on updatedUpdatedAt if needed, 
-        // but for now, the frontend timer handles the UI cooldown.
+        if (user.isVerified) {
+            return NextResponse.json({ message: 'User is already verified' }, { status: 200 });
+        }
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
         user.otp = otp;
         user.otpExpires = otpExpires;
+        user.otpAttempts = 0; // Reset attempts on new OTP
         await user.save();
 
         if (email) {

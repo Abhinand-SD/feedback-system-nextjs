@@ -4,18 +4,49 @@ import jwt from 'jsonwebtoken';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import { cookies } from 'next/headers';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { loginSchema } from '@/lib/validations';
 
 export async function POST(req: Request) {
     try {
-        const { email, mobile, password } = await req.json();
+        const ip = req.headers.get('x-forwarded-for') || 'unknown';
+        const rateLimit = checkRateLimit(ip, 5, 15 * 60 * 1000); // 5 attempts per 15 mins
 
-        if ((!email && !mobile) || !password) {
-            return NextResponse.json({ message: 'Email/Mobile and password are required' }, { status: 400 });
+        if (!rateLimit.success) {
+            return NextResponse.json({
+                message: 'Too many login attempts. Please try again later.'
+            }, { status: 429 });
         }
+
+        const body = await req.json();
+
+        // Map email/mobile to identifier for schema validation
+        const payload = {
+            identifier: body.email || body.mobile,
+            password: body.password
+        };
+
+        const validation = loginSchema.safeParse(payload);
+
+        if (!validation.success) {
+            return NextResponse.json({
+                message: 'Invalid input',
+                errors: validation.error.flatten().fieldErrors
+            }, { status: 400 });
+        }
+
+        const { identifier, password } = validation.data;
 
         await dbConnect();
 
-        const query = email ? { email } : { mobile };
+        // Determine if identifier is email or mobile based on input or regex
+        // Since we unified it in schema, let's just query both or strict check?
+        // The original code successfully separated them on frontend.
+        // Here we can try to find by either.
+
+        const isEmail = identifier.includes('@');
+        const query = isEmail ? { email: identifier } : { mobile: identifier };
+
         const user = await User.findOne(query);
 
         if (!user) {

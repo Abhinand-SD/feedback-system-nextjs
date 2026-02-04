@@ -5,11 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { ShieldCheck } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 function VerifyForm() {
     const searchParams = useSearchParams();
     const initialEmail = searchParams.get('email') || '';
     const initialMobile = searchParams.get('mobile') || '';
+
+    const { checkAuth } = useAuth(); // Correctly placed inside component
 
     const [identifier, setIdentifier] = useState(initialEmail || initialMobile);
     const [otp, setOtp] = useState('');
@@ -24,8 +27,9 @@ function VerifyForm() {
         try {
             const payload = isEmail ? { email: identifier, otp } : { mobile: identifier, otp };
             await axios.post('/api/auth/verify', payload);
-            toast.success('Verification successful! You can now login.');
-            router.push('/login');
+            toast.success('Verification successful! Logging you in...');
+            await checkAuth(); // Update auth state
+            router.push('/dashboard'); // Redirect to dashboard
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Verification failed');
         } finally {
