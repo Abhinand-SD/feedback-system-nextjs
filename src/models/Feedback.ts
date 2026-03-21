@@ -27,6 +27,15 @@ const FeedbackSchema = new mongoose.Schema({
         enum: ['positive', 'neutral', 'negative'],
         default: 'neutral',
     },
+    topics: {
+        type: [String],
+        default: [],
+    },
+    priority: {
+        type: String,
+        enum: ['low', 'medium', 'high'],
+        default: 'low',
+    },
     status: {
         type: String,
         enum: ['pending', 'reviewed'],

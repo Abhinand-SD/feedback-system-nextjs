@@ -5,15 +5,18 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import FeedbackCard from '@/components/FeedbackCard';
-import { Users, MessageSquare, Star, Ban, CheckCircle, Check, X } from 'lucide-react';
+import { Users, MessageSquare, Star, Ban, CheckCircle, Check, X, Bell, Sparkles, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 export default function AdminDashboard() {
     const { user, loading: authLoading } = useAuth();
     const [stats, setStats] = useState<any>(null);
     const [users, setUsers] = useState<any[]>([]);
     const [feedbacks, setFeedbacks] = useState<any[]>([]);
+    const [isEmailReportEnabled, setIsEmailReportEnabled] = useState(false);
+    const [summary, setSummary] = useState<string | null>(null);
+    const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
     const [activeTab, setActiveTab] = useState('feedbacks');
     const router = useRouter();
 
@@ -29,16 +32,41 @@ export default function AdminDashboard() {
 
     const fetchData = async () => {
         try {
-            const [statsRes, usersRes, feedbacksRes] = await Promise.all([
+            const [statsRes, usersRes, feedbacksRes, settingsRes] = await Promise.all([
                 axios.get('/api/admin/stats'),
                 axios.get('/api/admin/users'),
                 axios.get('/api/feedback'),
+                axios.get('/api/admin/settings'),
             ]);
             setStats(statsRes.data);
             setUsers(usersRes.data.users);
             setFeedbacks(feedbacksRes.data.feedbacks);
+            setIsEmailReportEnabled(settingsRes.data.isAutomatedReportEnabled);
         } catch (error) {
             toast.error('Failed to load admin data');
+        }
+    };
+
+    const toggleSettings = async () => {
+        try {
+            const res = await axios.post('/api/admin/settings', { isAutomatedReportEnabled: !isEmailReportEnabled });
+            setIsEmailReportEnabled(res.data.isAutomatedReportEnabled);
+            toast.success(`Automated Email Reports turned ${!isEmailReportEnabled ? 'ON' : 'OFF'}`);
+        } catch (error) {
+            toast.error('Failed to update settings');
+        }
+    };
+
+    const generateAISummary = async () => {
+        setIsGeneratingSummary(true);
+        try {
+            const res = await axios.get('/api/admin/summary');
+            setSummary(res.data.summary);
+            toast.success('AI Summary Generated');
+        } catch (error) {
+            toast.error('Failed to generate summary. Ensure LLM API key is configured.');
+        } finally {
+            setIsGeneratingSummary(false);
         }
     };
 
@@ -86,6 +114,18 @@ export default function AdminDashboard() {
                         <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
                         <p className="text-muted-foreground">Overview of system performance</p>
                     </div>
+                    <div>
+                        <div className="flex items-center gap-3 bg-card px-4 py-2 rounded-2xl border border-border shadow-xs hover:shadow-md transition">
+                            <Bell size={18} className={isEmailReportEnabled ? 'text-primary' : 'text-slate-400'} />
+                            <span className="font-semibold text-sm mr-2">Automated Reports</span>
+                            <button
+                                onClick={toggleSettings}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${isEmailReportEnabled ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'}`}
+                            >
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ease-in-out ${isEmailReportEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                            </button>
+                        </div>
+                    </div>
                 </header>
 
                 {/* Stats Cards */}
@@ -130,33 +170,96 @@ export default function AdminDashboard() {
                     </div>
                 )}
 
-                {/* Sentiment Distribution Chart */}
-                {stats && stats.sentiments && stats.sentiments.length > 0 && (
-                    <div className="mb-10 bg-card p-6 rounded-2xl shadow-lg border border-border">
-                        <h2 className="text-xl font-bold mb-4">Sentiment Distribution</h2>
-                        <div className="h-64 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={stats.sentiments.map((s: any) => ({ name: s._id === 'positive' ? 'Positive' : s._id === 'negative' ? 'Negative' : 'Neutral', value: s.count }))}
-                                        dataKey="value"
-                                        nameKey="name"
-                                        cx="50%"
-                                        cy="50%"
-                                        outerRadius={80}
-                                        label={(entry) => `${entry.name} (${entry.value})`}
-                                    >
-                                        {stats.sentiments.map((s: any, index: number) => (
-                                            <Cell key={`cell-${index}`} fill={s._id === 'positive' ? '#10b981' : s._id === 'negative' ? '#ef4444' : '#64748b'} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                    <Legend />
-                                </PieChart>
-                            </ResponsiveContainer>
+                {/* Charts Area */}
+                <div className="grid md:grid-cols-3 gap-6 mb-10">
+                    {/* Sentiment Distribution Chart */}
+                    {stats && stats.sentiments && stats.sentiments.length > 0 && (
+                        <div className="bg-card p-6 rounded-3xl shadow-lg border border-border flex flex-col justify-between">
+                            <h2 className="text-xl font-bold mb-4">Sentiment Balance</h2>
+                            <div className="h-64 w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={stats.sentiments.map((s: any) => ({ name: s._id === 'positive' ? 'Positive' : s._id === 'negative' ? 'Negative' : 'Neutral', value: s.count }))}
+                                            dataKey="value"
+                                            nameKey="name"
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={65}
+                                            outerRadius={85}
+                                            paddingAngle={5}
+                                            stroke="none"
+                                            cornerRadius={8}
+                                        >
+                                            {stats.sentiments.map((s: any, index: number) => (
+                                                <Cell key={`cell-${index}`} fill={s._id === 'positive' ? '#10b981' : s._id === 'negative' ? '#ef4444' : '#64748b'} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                                        <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* AI Executive Summary */}
+                    <div className="bg-card p-6 rounded-3xl shadow-lg border border-border md:col-span-2 flex flex-col relative overflow-hidden bg-linear-to-br from-card to-primary/5">
+                        <div className="flex justify-between items-start mb-6">
+                            <h2 className="text-xl font-bold flex items-center gap-2">
+                                <Sparkles className="text-primary" size={20} />
+                                AI Executive Summary
+                            </h2>
+                            <button
+                                onClick={generateAISummary}
+                                disabled={isGeneratingSummary}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white transition rounded-full font-semibold text-xs border border-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <RefreshCw size={14} className={isGeneratingSummary ? 'animate-spin' : ''} />
+                                {summary ? 'Regenerate' : 'Generate'}
+                            </button>
+                        </div>
+                        <div className="flex-1 bg-white/50 dark:bg-slate-900/50 rounded-2xl p-6 border border-white/20 dark:border-white/5 backdrop-blur-sm shadow-inner flex flex-col justify-center">
+                            {isGeneratingSummary ? (
+                                <div className="flex items-center justify-center gap-3 text-primary animate-pulse w-full h-full">
+                                    <Sparkles size={24} />
+                                    <span className="font-semibold text-lg">Analyzing feedback patterns...</span>
+                                </div>
+                            ) : summary ? (
+                                <p className="text-foreground leading-relaxed text-sm whitespace-pre-wrap font-medium">{summary}</p>
+                            ) : (
+                                <div className="text-center w-full">
+                                    <p className="text-muted-foreground italic leading-relaxed text-sm mb-2">No summary available.</p>
+                                    <p className="text-xs text-slate-400">Click generate to scan the latest feedback trends.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
-                )}
+                </div>
+
+                <div className="mb-10">
+                    {/* Department Topics Chart */}
+                    {stats && stats.topicsCount && stats.topicsCount.length > 0 && (
+                        <div className="bg-card p-6 rounded-3xl shadow-lg border border-border">
+                            <h2 className="text-xl font-bold mb-4">Department Issues</h2>
+                            <div className="h-64 w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={stats.topicsCount.map((t: any) => ({ name: t._id.replace('_', ' ').toUpperCase(), count: t.count }))}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.2} />
+                                        <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={60} />
+                                        <YAxis allowDecimals={false} />
+                                        <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                        <Bar dataKey="count" fill="var(--color-primary)" radius={[4, 4, 0, 0]}>
+                                            {stats.topicsCount.map((entry: any, index: number) => (
+                                                <Cell key={`cell-${index}`} fill={'#8b5cf6'} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 {/* Tabs */}
                 <div className="flex gap-6 mb-8 border-b border-border">

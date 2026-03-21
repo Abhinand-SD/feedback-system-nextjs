@@ -28,11 +28,23 @@ export async function GET(req: Request) {
             { $group: { _id: '$sentiment', count: { $sum: 1 } } }
         ]);
 
+        const topicsCount = await Feedback.aggregate([
+            { $unwind: { path: '$topics', preserveNullAndEmptyArrays: false } },
+            { $group: { _id: '$topics', count: { $sum: 1 } } },
+            { $sort: { count: -1 } }
+        ]);
+
+        const priorityCount = await Feedback.aggregate([
+            { $group: { _id: '$priority', count: { $sum: 1 } } }
+        ]);
+
         return NextResponse.json({
             totalUsers,
             totalFeedbacks,
             ratings,
             sentiments,
+            topicsCount,
+            priorityCount,
             averageRating: averageRating.length > 0 ? averageRating[0].avg : 0
         }, { status: 200 });
     } catch (error) {

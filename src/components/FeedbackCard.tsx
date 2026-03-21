@@ -9,6 +9,8 @@ interface FeedbackProps {
     rating: number;
     message: string;
     sentiment?: string;
+    topics?: string[];
+    priority?: string;
     status: string;
     createdAt: string;
     reply?: string;
@@ -27,9 +29,14 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
     const isPending = feedback.status === 'pending';
 
     return (
-        <div className="bg-card p-5 rounded-xl border border-border shadow-sm hover:shadow-md transition">
+        <div className={`bg-card p-5 rounded-xl border shadow-sm hover:shadow-md transition ${feedback.priority === 'high' ? 'border-red-500/50 shadow-red-500/10' : 'border-border'}`}>
+            {feedback.priority === 'high' && (
+                <div className="bg-red-50 text-red-600 text-xs font-bold px-3 py-1.5 rounded-lg mb-4 flex items-center gap-1.5 border border-red-100 uppercase tracking-wider">
+                    ⚠️ High Priority Feedback
+                </div>
+            )}
             <div className="flex justify-between items-start mb-3">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${feedback.category === 'bug' ? 'bg-red-50 text-red-600 border border-red-100' :
                         feedback.category === 'feature' ? 'bg-purple-50 text-purple-600 border border-purple-100' :
                             'bg-sky-50 text-sky-600 border border-sky-100'
@@ -49,6 +56,11 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
                         {'★'.repeat(feedback.rating)}
                         <span className="text-slate-200 dark:text-slate-600">{'★'.repeat(5 - feedback.rating)}</span>
                     </span>
+                    {feedback.topics && feedback.topics.length > 0 && feedback.topics.map(topic => (
+                        <span key={topic} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-50 text-violet-600 border border-violet-100 uppercase tracking-wider">
+                            {topic.replace('_', ' ')}
+                        </span>
+                    ))}
                 </div>
 
                 {isPending ? (

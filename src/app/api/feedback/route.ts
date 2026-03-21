@@ -25,12 +25,35 @@ export async function POST(req: Request) {
         if (result.score > 0) sentiment = 'positive';
         else if (result.score < 0) sentiment = 'negative';
 
+        // Extract topics based on keywords
+        const lowerMsg = message.toLowerCase();
+        const detectedTopics: string[] = [];
+        if (/(doctor|dr\.|physician|surgeon|consultant)/.test(lowerMsg)) detectedTopics.push('doctor_behavior');
+        if (/(nurse|nursing|sister|ward boy)/.test(lowerMsg)) detectedTopics.push('nursing_care');
+        if (/(wait|delay|time|slow|queue|long)/.test(lowerMsg)) detectedTopics.push('waiting_time');
+        if (/(clean|dirty|hygiene|washroom|bathroom|sweep|mop|dust|smell)/.test(lowerMsg)) detectedTopics.push('cleanliness');
+        if (/(bill|amount|cost|price|pay|insurance|charge|expensive)/.test(lowerMsg)) detectedTopics.push('billing');
+        if (/(room|bed|ac|fan|light|water|food|canteen|parking|lift|elevator|facility|facilities)/.test(lowerMsg)) detectedTopics.push('facilities');
+        if (detectedTopics.length === 0) detectedTopics.push('other');
+
+        // Extract priority
+        let priority = 'low';
+        const urgentKeywords = ['very rude', 'unsafe', 'negligence', 'emergency delay', 'worst', 'terrible', 'pathetic', 'died', 'police', 'legal'];
+        const hasUrgent = urgentKeywords.some(keyword => lowerMsg.includes(keyword));
+        if (hasUrgent) {
+            priority = 'high';
+        } else if (sentiment === 'negative') {
+            priority = 'medium';
+        }
+
         const newFeedback = new Feedback({
             userId: user.userId,
             category,
             rating,
             message,
             sentiment,
+            topics: detectedTopics,
+            priority,
         });
 
         await newFeedback.save();
