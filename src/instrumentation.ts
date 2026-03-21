@@ -1,11 +1,10 @@
-import cron from 'node-cron';
-import nodemailer from 'nodemailer';
-import dbConnect from './lib/db';
-import Settings from './models/Settings';
-import Feedback from './models/Feedback';
-
 export async function register() {
     if (process.env.NEXT_RUNTIME === 'nodejs') {
+        const cron = (await import('node-cron')).default;
+        const nodemailer = (await import('nodemailer')).default;
+        const dbConnect = (await import('./lib/db')).default;
+        const Settings = (await import('./models/Settings')).default;
+        const Feedback = (await import('./models/Feedback')).default;
         const sendReport = async (type: 'Weekly' | 'Monthly') => {
             try {
                 await dbConnect();

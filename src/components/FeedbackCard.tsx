@@ -29,8 +29,8 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
     const isPending = feedback.status === 'pending';
 
     return (
-        <div className={`bg-card p-5 rounded-xl border shadow-sm hover:shadow-md transition ${feedback.priority === 'high' ? 'border-red-500/50 shadow-red-500/10' : 'border-border'}`}>
-            {feedback.priority === 'high' && (
+        <div className={`bg-card p-5 rounded-xl border shadow-sm hover:shadow-md transition ${showUser && feedback.priority === 'high' ? 'border-red-500/50 shadow-red-500/10' : 'border-border'}`}>
+            {showUser && feedback.priority === 'high' && (
                 <div className="bg-red-50 text-red-600 text-xs font-bold px-3 py-1.5 rounded-lg mb-4 flex items-center gap-1.5 border border-red-100 uppercase tracking-wider">
                     ⚠️ High Priority Feedback
                 </div>
@@ -43,7 +43,7 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
                         }`}>
                         {feedback.category.replace('_', ' ')}
                     </span>
-                    {feedback.sentiment && (
+                    {showUser && feedback.sentiment && (
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide ${
                             feedback.sentiment === 'positive' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
                             feedback.sentiment === 'negative' ? 'bg-red-50 text-red-600 border border-red-100' :
@@ -56,7 +56,7 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
                         {'★'.repeat(feedback.rating)}
                         <span className="text-slate-200 dark:text-slate-600">{'★'.repeat(5 - feedback.rating)}</span>
                     </span>
-                    {feedback.topics && feedback.topics.length > 0 && feedback.topics.map(topic => (
+                    {showUser && feedback.topics && feedback.topics.length > 0 && feedback.topics.map(topic => (
                         <span key={topic} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-50 text-violet-600 border border-violet-100 uppercase tracking-wider">
                             {topic.replace('_', ' ')}
                         </span>
