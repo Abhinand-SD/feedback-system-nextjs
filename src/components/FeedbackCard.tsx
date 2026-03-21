@@ -8,6 +8,7 @@ interface FeedbackProps {
     category: string;
     rating: number;
     message: string;
+    sentiment?: string;
     status: string;
     createdAt: string;
     reply?: string;
@@ -35,6 +36,15 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
                         }`}>
                         {feedback.category.replace('_', ' ')}
                     </span>
+                    {feedback.sentiment && (
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide ${
+                            feedback.sentiment === 'positive' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                            feedback.sentiment === 'negative' ? 'bg-red-50 text-red-600 border border-red-100' :
+                            'bg-slate-50 text-slate-600 border border-slate-100'
+                        }`}>
+                            {feedback.sentiment === 'positive' ? '🙂 Positive' : feedback.sentiment === 'negative' ? '🙁 Negative' : '😐 Neutral'}
+                        </span>
+                    )}
                     <span className="flex items-center text-yellow-500 text-sm font-bold">
                         {'★'.repeat(feedback.rating)}
                         <span className="text-slate-200 dark:text-slate-600">{'★'.repeat(5 - feedback.rating)}</span>

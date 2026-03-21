@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Feedback from '@/models/Feedback';
 import { authenticate } from '@/lib/auth';
+import Sentiment from 'sentiment';
 
 export async function POST(req: Request) {
     try {
@@ -18,11 +19,18 @@ export async function POST(req: Request) {
 
         await dbConnect();
 
+        const sentimentAnalyzer = new Sentiment();
+        const result = sentimentAnalyzer.analyze(message);
+        let sentiment = 'neutral';
+        if (result.score > 0) sentiment = 'positive';
+        else if (result.score < 0) sentiment = 'negative';
+
         const newFeedback = new Feedback({
             userId: user.userId,
             category,
             rating,
             message,
+            sentiment,
         });
 
         await newFeedback.save();

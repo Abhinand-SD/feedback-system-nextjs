@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import FeedbackCard from '@/components/FeedbackCard';
 import { Users, MessageSquare, Star, Ban, CheckCircle, Check, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 export default function AdminDashboard() {
     const { user, loading: authLoading } = useAuth();
@@ -125,6 +126,34 @@ export default function AdminDashboard() {
                                 <p className="text-muted-foreground text-sm font-medium mb-1">Avg Rating</p>
                                 <h3 className="text-3xl font-bold">{stats.averageRating ? stats.averageRating.toFixed(1) : 'N/A'}</h3>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Sentiment Distribution Chart */}
+                {stats && stats.sentiments && stats.sentiments.length > 0 && (
+                    <div className="mb-10 bg-card p-6 rounded-2xl shadow-lg border border-border">
+                        <h2 className="text-xl font-bold mb-4">Sentiment Distribution</h2>
+                        <div className="h-64 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={stats.sentiments.map((s: any) => ({ name: s._id === 'positive' ? 'Positive' : s._id === 'negative' ? 'Negative' : 'Neutral', value: s.count }))}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        cx="50%"
+                                        cy="50%"
+                                        outerRadius={80}
+                                        label={(entry) => `${entry.name} (${entry.value})`}
+                                    >
+                                        {stats.sentiments.map((s: any, index: number) => (
+                                            <Cell key={`cell-${index}`} fill={s._id === 'positive' ? '#10b981' : s._id === 'negative' ? '#ef4444' : '#64748b'} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                    <Legend />
+                                </PieChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 )}

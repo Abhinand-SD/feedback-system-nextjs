@@ -24,10 +24,15 @@ export async function GET(req: Request) {
             { $group: { _id: null, avg: { $avg: '$rating' } } }
         ]);
 
+        const sentiments = await Feedback.aggregate([
+            { $group: { _id: '$sentiment', count: { $sum: 1 } } }
+        ]);
+
         return NextResponse.json({
             totalUsers,
             totalFeedbacks,
             ratings,
+            sentiments,
             averageRating: averageRating.length > 0 ? averageRating[0].avg : 0
         }, { status: 200 });
     } catch (error) {

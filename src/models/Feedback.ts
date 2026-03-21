@@ -22,6 +22,11 @@ const FeedbackSchema = new mongoose.Schema({
         required: [true, 'Please provide a message'],
         maxlength: [1000, 'Message cannot be more than 1000 characters'],
     },
+    sentiment: {
+        type: String,
+        enum: ['positive', 'neutral', 'negative'],
+        default: 'neutral',
+    },
     status: {
         type: String,
         enum: ['pending', 'reviewed'],

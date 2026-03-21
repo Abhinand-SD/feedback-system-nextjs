@@ -36,11 +36,6 @@ export default function Navbar() {
                     {loading ? null : (
                         user ? (
                             <>
-                                {user.role === 'admin' ? (
-                                    <Link href="/admin" className="text-muted-foreground hover:text-primary transition-colors font-medium">Admin Dashboard</Link>
-                                ) : (
-                                    <Link href="/dashboard" className="text-muted-foreground hover:text-primary transition-colors font-medium">Dashboard</Link>
-                                )}
                                 <div className="flex items-center gap-4">
                                     <span className="text-sm bg-muted text-muted-foreground px-3 py-1 rounded-full font-medium">{user.name}</span>
                                     <button
