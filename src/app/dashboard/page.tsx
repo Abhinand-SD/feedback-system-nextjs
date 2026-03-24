@@ -5,6 +5,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import FeedbackCard from '@/components/FeedbackCard';
+import Shimmer from '@/components/Shimmer';
 import { Send, Activity, MessageSquare, ClipboardList, Mic, MicOff } from 'lucide-react';
 
 interface Feedback {
@@ -165,7 +166,7 @@ export default function Dashboard() {
     return (
         <div className="container mx-auto py-10 px-4 bg-background min-h-screen">
             <header className="mb-10 text-center">
-                <h1 className="text-4xl font-bold mb-2 text-primary flex justify-center items-center gap-3">
+                <h1 className="font-bold mb-2 text-primary flex justify-center items-center gap-3">
                     <Activity className="h-10 w-10" /> ASD Hospital Feedback Portal
                 </h1>
                 <p className="text-slate-600 dark:text-slate-400 font-medium tracking-wide uppercase text-sm">Patient Experience Management</p>
@@ -177,7 +178,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Submission Form */}
                 <div className="md:col-span-1">
-                    <div className="bg-card p-6 rounded-xl shadow-sm border border-border sticky top-24">
+                    <div className="bg-card p-5 pt-4 rounded-xl shadow-sm border border-border sticky top-24">
                         <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-foreground border-b border-border pb-3">
                             <ClipboardList size={20} className="text-primary" /> New Feedback
                         </h2>
@@ -206,7 +207,7 @@ export default function Dashboard() {
                                             key={star}
                                             type="button"
                                             onClick={() => setForm({ ...form, rating: star })}
-                                            className={`text-2xl transition hover:scale-110 focus:outline-none ${star <= form.rating ? 'text-yellow-400' : 'text-slate-300 dark:text-slate-600'
+                                            className={`text-2xl transition hover:scale-110 focus:outline-none ${star <= form.rating ? 'text-amber-500 drop-shadow-sm' : 'text-slate-300 dark:text-slate-600'
                                                 }`}
                                         >
                                             ★
@@ -233,7 +234,7 @@ export default function Dashboard() {
                                 <div className="relative">
                                     <textarea
                                         required
-                                        rows={5}
+                                        rows={6}
                                         className={`w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-primary/50 resize-none text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors ${
                                             isRecording
                                             ? 'border-rose-300 dark:border-rose-700 bg-rose-50/30 dark:bg-rose-900/10 text-slate-900 dark:text-slate-100 shadow-[0_0_15px_rgba(244,63,94,0.1)]'
@@ -272,9 +273,10 @@ export default function Dashboard() {
                         Recent Submissions
                     </h2>
                     {loading ? (
-                        <div className="flex flex-col items-center justify-center py-20 bg-card rounded-xl border border-border">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"></div>
-                            <p className="text-slate-500 text-sm">Loading records...</p>
+                        <div className="space-y-4">
+                            <Shimmer className="h-32" />
+                            <Shimmer className="h-32" />
+                            <Shimmer className="h-32" />
                         </div>
                     ) : feedbacks.length === 0 ? (
                         <div className="text-center py-16 bg-card rounded-xl border border-dashed border-slate-300">

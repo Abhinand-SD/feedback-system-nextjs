@@ -5,6 +5,18 @@ const SettingsSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    feedback_summary: {
+        type: String,
+        default: null
+    },
+    summary_updated_at: {
+        type: Date,
+        default: null
+    }
 }, { timestamps: true });
 
-export default mongoose.models.Settings || mongoose.model('Settings', SettingsSchema);
+if (mongoose.models.Settings) {
+    delete mongoose.models.Settings;
+}
+
+export default mongoose.model('Settings', SettingsSchema);

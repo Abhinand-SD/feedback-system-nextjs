@@ -5,7 +5,9 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import FeedbackCard from '@/components/FeedbackCard';
-import { Users, MessageSquare, Star, Ban, CheckCircle, Check, X, Bell, Sparkles, RefreshCw } from 'lucide-react';
+import SummaryCard from '@/components/SummaryCard';
+import Shimmer from '@/components/Shimmer';
+import { Users, MessageSquare, Star, Ban, CheckCircle, Check, X, Bell, Sparkles, RefreshCw, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
@@ -15,8 +17,7 @@ export default function AdminDashboard() {
     const [users, setUsers] = useState<any[]>([]);
     const [feedbacks, setFeedbacks] = useState<any[]>([]);
     const [isEmailReportEnabled, setIsEmailReportEnabled] = useState(false);
-    const [summary, setSummary] = useState<string | null>(null);
-    const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+    const [isSendingReport, setIsSendingReport] = useState(false);
     const [activeTab, setActiveTab] = useState('feedbacks');
     const router = useRouter();
 
@@ -57,16 +58,15 @@ export default function AdminDashboard() {
         }
     };
 
-    const generateAISummary = async () => {
-        setIsGeneratingSummary(true);
+    const sendTestReport = async () => {
+        setIsSendingReport(true);
         try {
-            const res = await axios.get('/api/admin/summary');
-            setSummary(res.data.summary);
-            toast.success('AI Summary Generated');
-        } catch (error) {
-            toast.error('Failed to generate summary. Ensure LLM API key is configured.');
+            const res = await axios.post('/api/admin/send-report', { type: 'Weekly' });
+            toast.success(res.data.message || 'Test report sent successfully');
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to send test report');
         } finally {
-            setIsGeneratingSummary(false);
+            setIsSendingReport(false);
         }
     };
 
@@ -104,7 +104,7 @@ export default function AdminDashboard() {
         }
     };
 
-    if (authLoading || !user) return <div className="p-10 text-center text-foreground">Loading...</div>;
+    // if (authLoading || !user) return <div className="p-10 text-center text-foreground">Loading...</div>;
 
     return (
         <div className="min-h-screen pt-10 pb-20 font-sans bg-background text-foreground transition-colors duration-300">
@@ -115,21 +115,31 @@ export default function AdminDashboard() {
                         <p className="text-muted-foreground">Overview of system performance</p>
                     </div>
                     <div>
-                        <div className="flex items-center gap-3 bg-card px-4 py-2 rounded-2xl border border-border shadow-xs hover:shadow-md transition">
-                            <Bell size={18} className={isEmailReportEnabled ? 'text-primary' : 'text-slate-400'} />
-                            <span className="font-semibold text-sm mr-2">Automated Reports</span>
+                        <div className="hidden md:flex flex-col gap-3">
+                            <div className="flex items-center gap-3 bg-card px-4 py-2 rounded-2xl border border-border shadow-xs hover:shadow-md transition">
+                                <Bell size={18} className={isEmailReportEnabled ? 'text-primary' : 'text-slate-400'} />
+                                <span className="font-semibold text-sm mr-2">Automated Reports</span>
+                                <button
+                                    onClick={toggleSettings}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${isEmailReportEnabled ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'}`}
+                                >
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ease-in-out ${isEmailReportEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
                             <button
-                                onClick={toggleSettings}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${isEmailReportEnabled ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'}`}
+                                onClick={sendTestReport}
+                                disabled={isSendingReport}
+                                className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-2xl border border-primary hover:bg-primary/90 transition shadow-xs hover:shadow-md disabled:opacity-50"
                             >
-                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ease-in-out ${isEmailReportEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                                <Mail size={16} className={isSendingReport ? 'animate-pulse' : ''} />
+                                <span className="font-semibold text-sm">{isSendingReport ? 'Sending...' : 'Send Test Report'}</span>
                             </button>
                         </div>
                     </div>
                 </header>
 
                 {/* Stats Cards */}
-                {stats && (
+                {stats ? (
                     <div className="grid md:grid-cols-3 gap-6 mb-10">
                         <div className="bg-card p-6 rounded-2xl shadow-lg border border-border flex items-center gap-5 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-3 opacity-10 transform translate-x-2 -translate-y-2 text-foreground">
@@ -168,6 +178,12 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </div>
+                ) : (
+                    <div className="grid md:grid-cols-3 gap-6 mb-10">
+                        <Shimmer className="h-32" />
+                        <Shimmer className="h-32" />
+                        <Shimmer className="h-32" />
+                    </div>
                 )}
 
                 {/* Charts Area */}
@@ -180,7 +196,9 @@ export default function AdminDashboard() {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
-                                            data={stats.sentiments.map((s: any) => ({ name: s._id === 'positive' ? 'Positive' : s._id === 'negative' ? 'Negative' : 'Neutral', value: s.count }))}
+                                            data={stats.sentiments
+                                                .filter((s: any) => ['positive', 'negative', 'neutral'].includes(s._id))
+                                                .map((s: any) => ({ name: s._id === 'positive' ? 'Positive' : s._id === 'negative' ? 'Negative' : 'Neutral', value: s.count }))}
                                             dataKey="value"
                                             nameKey="name"
                                             cx="50%"
@@ -191,8 +209,10 @@ export default function AdminDashboard() {
                                             stroke="none"
                                             cornerRadius={8}
                                         >
-                                            {stats.sentiments.map((s: any, index: number) => (
-                                                <Cell key={`cell-${index}`} fill={s._id === 'positive' ? '#10b981' : s._id === 'negative' ? '#ef4444' : '#64748b'} />
+                                            {stats.sentiments
+                                                .filter((s: any) => ['positive', 'negative', 'neutral'].includes(s._id))
+                                                .map((s: any, index: number) => (
+                                                    <Cell key={`cell-${index}`} fill={s._id === 'positive' ? '#10b981' : s._id === 'negative' ? '#ef4444' : '#eab308'} />
                                             ))}
                                         </Pie>
                                         <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
@@ -204,37 +224,7 @@ export default function AdminDashboard() {
                     )}
 
                     {/* AI Executive Summary */}
-                    <div className="bg-card p-6 rounded-3xl shadow-lg border border-border md:col-span-2 flex flex-col relative overflow-hidden bg-linear-to-br from-card to-primary/5">
-                        <div className="flex justify-between items-start mb-6">
-                            <h2 className="text-xl font-bold flex items-center gap-2">
-                                <Sparkles className="text-primary" size={20} />
-                                AI Executive Summary
-                            </h2>
-                            <button
-                                onClick={generateAISummary}
-                                disabled={isGeneratingSummary}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white transition rounded-full font-semibold text-xs border border-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <RefreshCw size={14} className={isGeneratingSummary ? 'animate-spin' : ''} />
-                                {summary ? 'Regenerate' : 'Generate'}
-                            </button>
-                        </div>
-                        <div className="flex-1 bg-white/50 dark:bg-slate-900/50 rounded-2xl p-6 border border-white/20 dark:border-white/5 backdrop-blur-sm shadow-inner flex flex-col justify-center">
-                            {isGeneratingSummary ? (
-                                <div className="flex items-center justify-center gap-3 text-primary animate-pulse w-full h-full">
-                                    <Sparkles size={24} />
-                                    <span className="font-semibold text-lg">Analyzing feedback patterns...</span>
-                                </div>
-                            ) : summary ? (
-                                <p className="text-foreground leading-relaxed text-sm whitespace-pre-wrap font-medium">{summary}</p>
-                            ) : (
-                                <div className="text-center w-full">
-                                    <p className="text-muted-foreground italic leading-relaxed text-sm mb-2">No summary available.</p>
-                                    <p className="text-xs text-slate-400">Click generate to scan the latest feedback trends.</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    <SummaryCard />
                 </div>
 
                 <div className="mb-10">
