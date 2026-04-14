@@ -37,10 +37,7 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
             )}
             <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${feedback.category === 'bug' ? 'bg-red-50 text-red-600 border border-red-100' :
-                        feedback.category === 'feature' ? 'bg-purple-50 text-purple-600 border border-purple-100' :
-                            'bg-sky-50 text-sky-600 border border-sky-100'
-                        }`}>
+                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide bg-sky-50 text-sky-600 border border-sky-100">
                         {feedback.category.replace('_', ' ')}
                     </span>
                     {showUser && feedback.sentiment && (
@@ -74,7 +71,14 @@ export default function FeedbackCard({ feedback, onDelete, onEdit, onReply, show
                 )}
             </div>
 
-            <p className="text-slate-700 dark:text-slate-300 mb-4 whitespace-pre-wrap text-sm leading-relaxed">{feedback.message}</p>
+            <p className="text-slate-700 dark:text-slate-300 mb-4 whitespace-pre-wrap text-sm leading-relaxed">
+                {feedback.message ? feedback.message.split(/(\*\*.*?\*\*)/g).map((part, i) => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                        return <strong key={i} className="font-semibold text-slate-900 dark:text-slate-100">{part.slice(2, -2)}</strong>;
+                    }
+                    return <span key={i}>{part}</span>;
+                }) : null}
+            </p>
 
             {/* Admin specific: Show User info */}
             {showUser && feedback.userId && (
