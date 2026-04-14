@@ -53,7 +53,7 @@ export default function AdminDashboard() {
         }
     }, [user, authLoading]);
 
-    const fetchData = async () => {
+    const fetchData = async (retryCount = 0) => {
         try {
             const [statsRes, usersRes, feedbacksRes, settingsRes] = await Promise.all([
                 axios.get('/api/admin/stats'),
@@ -66,7 +66,12 @@ export default function AdminDashboard() {
             setFeedbacks(feedbacksRes.data.feedbacks);
             setIsEmailReportEnabled(settingsRes.data.isAutomatedReportEnabled);
         } catch (error) {
-            toast.error('Failed to load admin data');
+            if (retryCount < 2) {
+                // Retry up to 2 times with a 1.5s delay to allow Vercel lambdas to establish MongoDB connections
+                setTimeout(() => fetchData(retryCount + 1), 1500);
+            } else {
+                toast.error('Failed to load admin data');
+            }
         }
     };
 
