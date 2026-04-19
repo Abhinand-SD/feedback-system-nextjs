@@ -71,7 +71,7 @@ export default function Header() {
                                                     logout();
                                                     setIsSettingsOpen(false);
                                                 }}
-                                                className="w-full px-3 py-2.5 flex items-center gap-2 rounded-lg hover:bg-red-500/10 text-red-500 text-sm font-medium transition-colors font-bold"
+                                                className="w-full px-3 py-2.5 flex items-center gap-2 rounded-lg hover:bg-red-500/10 text-red-500 text-sm font-medium transition-colors"
                                             >
                                                 <LogOut size={16} />
                                                 Logout

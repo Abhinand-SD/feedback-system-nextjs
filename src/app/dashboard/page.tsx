@@ -42,10 +42,16 @@ export default function Dashboard() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [answers, setAnswers] = useState<Record<string, string>>({});
 
-    // Speech Recognition states for single text area fallback
-    const [isRecording, setIsRecording] = useState(false);
+    // Speech Recognition states for text areas
+    const [activeRecordingId, setActiveRecordingId] = useState<string | null>(null);
+    const activeRecordingIdRef = useRef<string | null>(null);
+    const nextRecordingIdRef = useRef<string | null>(null);
     const [interimResult, setInterimResult] = useState('');
     const recognitionRef = useRef<any>(null);
+
+    useEffect(() => {
+        activeRecordingIdRef.current = activeRecordingId;
+    }, [activeRecordingId]);
 
     const fetchFeedbacks = async () => {
         try {
@@ -105,7 +111,18 @@ export default function Dashboard() {
                     }
 
                     if (finalTranscript) {
-                        setForm((prev) => ({ ...prev, message: (prev.message ? prev.message + ' ' : '') + finalTranscript.trim() }));
+                        const targetId = activeRecordingIdRef.current;
+                        if (targetId === 'general') {
+                            setForm((prev) => ({ ...prev, message: (prev.message ? prev.message + ' ' : '') + finalTranscript.trim() }));
+                        } else if (targetId) {
+                            setAnswers((prev) => {
+                                const currentAnswer = prev[targetId] || '';
+                                return {
+                                    ...prev,
+                                    [targetId]: (currentAnswer ? currentAnswer + ' ' : '') + finalTranscript.trim()
+                                };
+                            });
+                        }
                     }
                     setInterimResult(currentInterim);
                 };
@@ -119,12 +136,26 @@ export default function Dashboard() {
                     } else if (event.error !== 'aborted') {
                         toast.error('Voice recognition failed: ' + event.error);
                     }
-                    setIsRecording(false);
+                    setActiveRecordingId(null);
+                    nextRecordingIdRef.current = null;
                 };
 
                 recognition.onend = () => {
-                    setIsRecording(false);
+                    setActiveRecordingId(null);
                     setInterimResult('');
+                    
+                    if (nextRecordingIdRef.current) {
+                        const nextTarget = nextRecordingIdRef.current;
+                        nextRecordingIdRef.current = null;
+                        setTimeout(() => {
+                            setActiveRecordingId(nextTarget);
+                            try {
+                                recognitionRef.current.start();
+                            } catch (e) {
+                                console.error('Error starting next recording:', e);
+                            }
+                        }, 50);
+                    }
                 };
 
                 recognitionRef.current = recognition;
@@ -138,20 +169,23 @@ export default function Dashboard() {
         };
     }, []);
 
-    const toggleRecording = () => {
+    const toggleRecording = (targetId: string = 'general') => {
         if (!recognitionRef.current) {
             toast.error('Voice recognition is not supported in your browser.');
             return;
         }
 
-        if (isRecording) {
-            recognitionRef.current.stop();
-            setIsRecording(false);
-            setInterimResult('');
+        if (activeRecordingId) {
+            if (activeRecordingId === targetId) {
+                recognitionRef.current.stop();
+            } else {
+                nextRecordingIdRef.current = targetId;
+                recognitionRef.current.stop();
+            }
         } else {
+            setActiveRecordingId(targetId);
             try {
                 recognitionRef.current.start();
-                setIsRecording(true);
             } catch (error) {
                 console.error('Error starting recognition:', error);
             }
@@ -295,22 +329,51 @@ export default function Dashboard() {
 
                             <div className="space-y-5">
                                 {currentCatMapping && currentCatMapping.questions?.length > 0 ? (
-                                    // Render 5 Dynamic text inputs
-                                    currentCatMapping.questions.map((q, idx) => (
+                                    currentCatMapping.questions.map((q, idx) => {
+                                        const isRecThis = activeRecordingId === q._id;
+                                        return (
                                         <div key={q._id}>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 leading-tight">
-                                                <span className="text-primary font-bold mr-1">{idx + 1}.</span> {q.text}
-                                            </label>
-                                            <textarea
-                                                required
-                                                rows={3}
-                                                className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-primary/50 resize-y text-sm bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors"
-                                                value={answers[q._id] || ''}
-                                                onChange={(e) => handleAnswerChange(q._id, e.target.value)}
-                                                placeholder="Type your feedback here..."
-                                            />
+                                            <div className="flex justify-between items-center mb-2">
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 leading-tight">
+                                                    <span className="text-primary font-bold mr-1">{idx + 1}.</span> {q.text}
+                                                </label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleRecording(q._id)}
+                                                    className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 ${
+                                                        isRecThis 
+                                                        ? 'bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800 animate-pulse' 
+                                                        : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 hover:dark:bg-slate-700'
+                                                    }`}
+                                                >
+                                                    {isRecThis ? <><MicOff size={14} /> Stop</> : <><Mic size={14} /> Dictate</>}
+                                                </button>
+                                            </div>
+                                            <div className="relative">
+                                                <textarea
+                                                    required
+                                                    rows={3}
+                                                    className={`w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-primary/50 resize-y text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors ${
+                                                        isRecThis
+                                                        ? 'border-rose-300 dark:border-rose-700 bg-rose-50/30 dark:bg-rose-900/10 text-slate-900 dark:text-slate-100 shadow-[0_0_15px_rgba(244,63,94,0.1)]'
+                                                        : 'border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100'
+                                                    }`}
+                                                    value={(answers[q._id] || '') + (isRecThis && interimResult ? ((answers[q._id] ? ' ' : '') + interimResult) : '')}
+                                                    onChange={(e) => handleAnswerChange(q._id, e.target.value)}
+                                                    placeholder="Type your feedback here... (You can type or use the Dictate button)"
+                                                />
+                                                {isRecThis && (
+                                                    <div className="absolute right-3 bottom-3 flex items-center gap-2 pointer-events-none">
+                                                        <span className="flex h-2.5 w-2.5 relative">
+                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                                                        </span>
+                                                        <span className="text-xs font-semibold text-rose-500 tracking-wide uppercase">Listening</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    ))
+                                    )})
                                 ) : (
                                     // Render Fallback single textarea
                                     <div>
@@ -318,14 +381,14 @@ export default function Dashboard() {
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Comments</label>
                                             <button
                                                 type="button"
-                                                onClick={toggleRecording}
+                                                onClick={() => toggleRecording('general')}
                                                 className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 ${
-                                                    isRecording 
+                                                    activeRecordingId === 'general'
                                                     ? 'bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800 animate-pulse' 
                                                     : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 hover:dark:bg-slate-700'
                                                 }`}
                                             >
-                                                {isRecording ? <><MicOff size={14} /> Stop Recording</> : <><Mic size={14} /> Dictate</>}
+                                                {activeRecordingId === 'general' ? <><MicOff size={14} /> Stop Recording</> : <><Mic size={14} /> Dictate</>}
                                             </button>
                                         </div>
                                         <div className="relative">
@@ -333,15 +396,15 @@ export default function Dashboard() {
                                                 required
                                                 rows={6}
                                                 className={`w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-primary/50 resize-none text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors ${
-                                                    isRecording
+                                                    activeRecordingId === 'general'
                                                     ? 'border-rose-300 dark:border-rose-700 bg-rose-50/30 dark:bg-rose-900/10 text-slate-900 dark:text-slate-100 shadow-[0_0_15px_rgba(244,63,94,0.1)]'
                                                     : 'border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100'
                                                 }`}
-                                                value={form.message + (interimResult ? (form.message ? ' ' : '') + interimResult : '')}
+                                                value={form.message + (activeRecordingId === 'general' && interimResult ? (form.message ? ' ' : '') + interimResult : '')}
                                                 onChange={(e) => setForm({ ...form, message: e.target.value })}
                                                 placeholder="Please describe your experience in detail... (You can type or use the Dictate button)"
                                             />
-                                            {isRecording && (
+                                            {activeRecordingId === 'general' && (
                                                 <div className="absolute right-3 bottom-3 flex items-center gap-2 pointer-events-none">
                                                     <span className="flex h-2.5 w-2.5 relative">
                                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
