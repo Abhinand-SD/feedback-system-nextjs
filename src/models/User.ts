@@ -46,6 +46,12 @@ const UserSchema = new mongoose.Schema({
     lockoutUntil: {
         type: Date,
     },
+    resetPasswordToken: {
+        type: String,
+    },
+    resetPasswordExpires: {
+        type: Date,
+    },
     blocked: {
         type: Boolean,
         default: false,
