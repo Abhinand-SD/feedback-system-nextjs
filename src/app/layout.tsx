@@ -8,7 +8,7 @@ import { Toaster } from 'react-hot-toast';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Feedback System',
+  title: 'ASD Hospital',
   description: 'Share your thoughts and feedback',
 };
 
